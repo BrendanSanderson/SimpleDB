@@ -1,0 +1,29 @@
+lab 1
+brendansanderson-goldjacob29
+
+Design:
+
+	The main design decisions made in this lab were in deciding what data structures to use for the different classes. For the Tuple and TupleDesc classes, we chose to use arrays to store the fields, names, and field types. We did this because it is a very simple data structure and that is all we need for these classes. In addition, both these classes had lookup functions that used an index and an array allows for lookup both by index and object value. Also, Tuples should generally not be that long, so the lookup time for a value is not that bad. 
+
+	For the BufferPool and Catalog classes we used HashMaps, the main reasoning here being that we were interested in several different (key, value) pair relationships, and the most common use is doing a lookup by key. Each lookup can then be done in O(1) time, which is desirable. For the HeapPage, we chose to store the header and the tuples on the page in an array. This is because it is a heap with a fixed number of elements and an array is the simplest way implement this.
+
+
+API Changes:
+
+	We did not make any API changes in the lab. 
+
+	We did, however, implement in static helper method in SeqScan called genTupleDesc(). This function is used to create a new TupleDesc object (by prepending the table alias to the field names). We decided to create a separate function to accomplish this, because it is used both upon the construction of a SeqScan object, as well as when the reset method is called. More about this under the Lab Difficulties section.
+
+Division of work:
+	First, we met up, setup the git repository together and talked through the lab. During this time, we went through the requirements for the lab together and talked about how we planned to structure our approach to the lab. During this session, we also did the Tuple and TupleDesc parts together. We decided that Jacob would do catalog, bufferpool and seqscan while Brendan would do the heapFile, ID classes and heap page classes. Although we did this work separate, we discussed our decisions frequently and made sure to communicate any problems we had and all of our git pushes with each other. Once we were finished, we met up to discuss any questions we had and read over the code together. Overall, this was a very successful and productive way of getting the lab done together.
+
+Incomplete Code:
+
+	All code should be complete and finished, and all of the tests should pass.
+
+Lab Difficulties:
+	
+	This lab was overall pretty straight forward, and so we didn’t have too many difficulties. However, we were confused at first about having to create a class for the DBFileIterator. Additionally, several functions across different classes became easier as we progressed through the lab with a better understanding of how the different pieces were meant to fit together.
+
+	We struggled a bit with understanding the structure of the SeqScan class, in terms of figuring out which functionality should happen upon construction of an object, and which should happen later on. Ultimately, we decided to use getTupleDesc() as a simple getter method, and accomplish the creation of a new TupleDesc object (by means of a helper method) when a SeqScan object is constructed or reset. 
+

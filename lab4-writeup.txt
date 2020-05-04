@@ -1,0 +1,42 @@
+Lab 4 Writeup
+goldjacob29-brendansanderson
+
+Design:
+
+Exercise 1:
+	For exercise 1 we decided to take the advice given in the readme, and define a LockManager class. This class lives inside the BufferPool file and is in charge of granting and releasing both shared and exclusive locks. This class contains two HashMaps in order to keep track of which transactions have locks (and what kind) on which pages. 
+The granting and releasing of locks is relatively straightforward, and is mostly a matter of keeping track of the rules established in section 2.4 of the readme. From there, I had to modify getPage to acquire a lock (or attempt to) prior to looking up a page in the BufferPool. We decided to use a timeout (as suggested on piazza) to determine when a transaction should abort.
+One design decision that may be worth considering is maintaining an extra pair of hashmaps in the LockManager class. That is, our implementation uses two maps from transaction to page, but we may also wish to keep maps from page to transaction. This would make the process of releasing all of the locks on a certain page much easier, but would also require the extra bookkeeping work of updating both maps every time we do something.
+
+Exercise 2:
+	Fortunately our earlier implementations used getPage() and so this exercise did not require any additional work.
+
+Exercise 3:
+Exercise 3 was pretty straight forward and did not really have any room for design design decisions. The function now just iterates through the queue until it finds a clean page or no clean page at all.
+
+Exercise 4:
+	This exercise was quite straightforward given the direction in the readme, and the work done to establish a LockManager class. That is, we just had to find all of the dirty pages linked to our given transaction id, flush or revert (based on commit param), and release the locks on the transaction.
+
+Exercise 5:
+	For Exercise 5, we decided to use the timeout method. This is because the implementation is way similar and it produces a similar effect. Also, we decided to abort the thread the timeout first as this again was the simpler implementation and without a dependency graph we cannot abort the other transaction that is involved in a deadlock.
+	We chose to use a timeout time between 500 and 1000 ms determined randomly. We determined the timeout time randomly because if two transactions enter a deadlock, we want one to abort and not the other. By randomly choosing the timeout time, there is a much greater chance that only one will abort as one of the two will have a longer timeout time and thus receive the lock the next time it tries. We chose a base timeout of 500 as we want to ensure that it is actually a deadlock and not just waiting for an unavailable lock. We found that 500 ms was a good base to ensure that this happens. We tried lowering the timeout and found that the test sped up a lot, but also found that it occasionally fails. Next, we choose a number between 0 and 500 to add to 500 to create the timeout time. We found that 500 was a wide enough range to ensure that only one thread times out instead of both. Finally, we make each thread sleep for a random number between 20 and 40 ms. By making them sleep for random times, the threads desynchronize when they try to obtain the lock if they enter a deadlock at the same time and will try to get the locks again at different times. This helps to ensure that we are actually in a deadlock and that only 1 aborts. This range also gave us the best most consistent runtime.
+
+
+API Changes:
+
+	No changes to the API were made. We decided to add the class LockManager as a private class within BufferPool. This made sense as no other class uses it.
+
+
+Division of work:
+
+	Jacob began work on the lab first this time and so he worked through exercises 1 and 2. We decided that Brendan would do exercise 3 since he was more familiar with the original evictPage function, and so Jacob also did exercise 4. Finally Brendan did exercise 5. Overall, we felt that this division of work was fair and allowed us to productively finish the lab.
+
+
+Incomplete Code:
+
+	All code should be complete and finished, and all of the tests should pass.
+
+
+Lab Difficulties:
+
+	Most of this lab ended up being pretty straightforward after we successfully created the LockManager class. Once this was complete (and checked against section 2.4 in the readme for logic errors), we had to play around a bit with the timeout threshold in getPage(). It was hard to determine and fix bugs given the nature of concurrency, but we worked our way through it slowly. For a while, we could not determine how to abort a thread in the case of a determined deadlock, but we figured it out eventually.

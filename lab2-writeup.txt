@@ -1,0 +1,34 @@
+Lab 2 Writeup
+goldjacob29-brendansanderson
+Design:
+Exercise 1:
+	Exercise 1 consists of Predicate, JoinPredicate, Filter, and Join. The first three files were quite straightforward and did not leave a lot of room for implementation decisions. 
+The real work comes in the Join file, in which we actually implement the joining functionality (in fetchNext). We chose to implement the simple nested-loop join, though we both decided that we want to try to implement one of the other joins discussed in class in the future! This implementation itself is not too difficult; however, one key decision I made was to use a current-tuple-iterator, in addition to keeping a notion of left and right (through child1 and child2). I did this in order to conform to the typical paradigm of while current != null. Although I imagine this is not really necessary, it was helpful to think of the problem this way, and I believe that it helps with the readability of the code.
+Exercise 2:
+	Exercise 2 consists of IntegerAggregator, StringAggregator, and Aggregate. For this exercise, however, we decided to also create a new file called AggregatorHelper, which contains a single abstract class. The reason behind doing this was as follows: 
+Firstly, we wanted to capture the functionality of adding a value to the aggregate and asking for that value to be streamlined. For all of these aggregators we have the notion of an integer value (in the case of avg we have two values -- count and sum), but the way in which we interact with this value is different. Realizing that we could abstract out this behavior, we were left to choose between using an interface and a base class. We decided to go with the latter since abstract classes can include a value, and felt that this better represents what is actually going on. The IntegerAggregator and StringAggregator files each contain a number of classes (one for each type of aggregator) which extend this base class, and define the functions accordingly.
+After making this decision for how to handle the aggregators themselves, completing IntegerAggregator and StringAggregator came quite naturally (and in fact a lot of code between the two files is quite similar). We chose to use a HashMap of type <Field, AggregatorHelper> in order to keep track of the actual groupings. I should mention that I opted to use a switch statement in IntegerAggregator, as it felt quite natural to have a different case for each type of aggregator.
+The final file to implement was Aggregate, which was again not too difficult (especially with the hint to construct an Integer/StringAggregator accordingly). The only nuance here was recognizing that when we open an Aggregate iterator we should iterate over the child iterator and merge accordingly.
+
+Exercise 3:
+	In exercise 3, we expanded on our previous implementations of HeapPage and HeapFile by defining insert, delete, read and write operations. There was not room for variation in the implementation as these methods just operate on the already established architecture of the database.
+
+Exercise 4:
+	In exercise 4, we implemented Insert and Delete iterators. These iterators just iterate through a given array of tuples and call the insert and delete methods defined in exercise 3. Thus, there is was also not much room for being creative in the implementation.
+
+Exercise 5:
+	In exercise 5, we implemented eviction and discarding in BufferPool. We chose to use an LRU queue to determine which page to evict. This was the most logical eviction policy as it is the more efficient most of the time. It is true that MRU is more beneficial in instances where we are reiterating through the same database, which does not fit in memory, but as LRU is most efficient in most situations, we decided to use LRU.
+	We implemented LRU using a linked list. Initially, we tried a queue, but a Java queue does not have a method for removing a specific element, where a linked list does. We also considered a priorityQueue, but a priorityQueue does not allow you to update the priority after adding it the queue, so it is not useful in this case.
+	When a page is discarded, we decided not to remove it from the queue. This is because removing it from the queue has a runtime of O(n). Instead, we leave it in the queue. When we evict a page, we ensure that the element we pop off the queue is stored in the bufferpool as well and if it is not, we pop another element. This allows discardPage() to have a runtime of O(1) instead of O(n). The consequence is that more memory is used in the queue, but we felt like the benefit of a greater runtime was worth this consequence.
+	In the other methods, there was not much room for variation in the design.
+API Changes:
+We did not make any API changes in the lab. 
+Division of work:
+	We met up before starting to work on the lab and divided the work up. Jacob did exercises 1 and 2 and Brendan did exercises 3, 4 and 5. We felt like this was a natural way to divide the work as the workload seemed very similar. In terms of our availability, Jacob had more free time earlier and Brendan had more free time closer to the due date and thus this was a logical way to divide the work. We also maintained close communication throughout development, discussion design decisions and updating each other on our progress. At the end, we both looked through all of the code and made any changes necessary to make the code clean and ensure the tests were passed. We both feel like that this was a very successful way of getting the project done and neither of us felt like we did too much work or were pressed for time. 
+
+Incomplete Code:
+	All code should be complete and finished, and all of the tests should pass.
+Lab Difficulties:
+	Understanding the iterator abstraction was difficult at first to understand, but once we determined what an iterator was meant to do, it was not too difficult to iterate the methods. The greatest difficulty in exercises 3-5 was determining what wasn’t working. As all of the methods just call each other, it was hard to determine what wasn’t working. 
+	In a similar vein, we struggled for awhile with a tiny bug in Join which caused only one of the tests to fail. It was difficult to pinpoint exactly what was going wrong, but looping over all of the iterators and printing out their tuples eventually gave us some clarity.
+

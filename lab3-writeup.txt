@@ -1,0 +1,47 @@
+lab 3 Writeup
+goldjacob29-brendansanderson
+
+
+Design:
+Exercise 1:
+We used the IntHistogram class for this part. Most of the implementation was pretty straight forward. We repesent the histogram as an array of integers. Each integer represents a bucket. The range of a bucket can be calculated using the min and bucket width. For estimateSelectivity, we implemented 3 helper functions: estimateEqualTo, estimateLessThan and estimateGreaterThan. This allowed us to break down each predicate into some combination of these 3. For instance, LESS_THAN_OR_EQ equals estimateEqualTo + estimateLessThan.
+Exercise 2:
+When creating a TableStats, we first iterate through all of the tables using iterators and determine the min and the max value for each integer attribute in the table. Next, we create a histogram for each attritbute by using IntHistogram and StringHistogram, depending on if it is an integer or a String. It uses the max and min values previously determined if the attribute is an integer. Next, it iterates through the tables again and fills up the histograms. Along the way, it counts the values inserted into each histogram. The rest of the implmentation was pretty straight forward.
+
+Exercise 3:
+For exercise 3, we initially followed the instructions in the readme for the simplest implementations; however, these changed quite a bit with the addition of extra credits 1 and 4. As a result we are putting most of the discussion in those respective sections. 
+
+Basically, we kept the estimateJoinCost function as is (ie estimating the cost for a nested loop join), and then added a function estimateHashJoinCost in addition. 
+
+Exercise 4:
+For exercise 4 I followed the posted slides quite closely. A lot of the work for this exercise was in playing around with the different datatypes -- I spent a good amount of time at first sketching out where each piece of information I would need was being held. The procedure itself is relatively straightforward, and once I had a good grasp of what was going on it was not too difficult to complete. 
+
+However, I spent a lot of time debugging this function because I was not passing one of the tests. It turned out that the issue was actually in how I was estimating cardinality (ie I had forgotten a case), and once I realized this it was an easy fix.
+
+
+Extra Credit 1: Add code to perform more advanced join cardinality estimation
+First, we decided to keep track of the distinct values for each field in TableStats. We found this was a good idea as TableStats iterates through all of the values anyways, so it wasn’t too difficult to extend it to include the number of distinct values per field. We then added a function to the JoinOptimizer file called getDistinctValues(int field) that returns the amount of distinct values given the field number. With this function, following the given formula is quite easy -- the only real work here is to perform lookups in order to get at the right pieces of information (ie finding the table, column number). In this implementation, the improved estimation is only used in the case where both keys are primary, or neither key is primary.
+
+
+Extra Credit 4: Improved join algorithms and algorithm selection.
+We did this by implementing EquiHashJoin and made the query optimizer decide between nested join and the hash join (by determining which has the lowest cost). We implemented it by first loading values from the first set to the hash table. We make sure to load only the amount that fits in memory. We cannot actually add the hash table to memory, but we can simulate this by creating a HashTable object and adding only enough tuples that fit in memory into the HashTable. Next, it iterates through all of the second set and probes until there are no more. Then, it checks if there are any more items in the first set and if there is, it empties the hash table and reloads it with new values. It does this until it has iterated through all values.
+
+We implemented EquiHashJoin into the query optimizer by first creating a function that estimates the cost of EquiHashJoin: estimateHashJoinCost. The estimation is based off how many times it has to load new values into the hash table as each time it has to full scan through the second set. If the entire first set fits into memory, then the IO cost is 1 full scan of each table. Next, in computeCostAndCardOfSubplan, we have the program calculate the cost of EquiHashJoin for both sets as set 1 in addition to the cost of Join with both as set 1. We added an enum to LogicalJoinPlan, which is the type of join that should be used to do the join. computeCostAndCardOfSubplan sets to value to the join that has the minimum cost. Finally, instantiateJoin looks at the value of this enum and performs the proper join.
+
+
+API Changes:
+We did not make any major API changes in the lab. However, we did add a value to LogicalJoinNode, which is detailed in the design part. We also made IntHistogram and StringHistogram a subset of StatHistogram. We added several other functions in other locations which are detailed in the design portion.
+
+
+Division of Work:
+	Brendan had more time to work on the lab earlier, so he did exercises 1 and 2. Jacob had time to work on the lab later, so he did exercises 3 and 4. We felt like this was a good and fair was to divide work. Afterwards, we met up to go over the code together. We also both independently took attempts at the extra credit and worked together to complete extra credits 1 and 4.
+
+
+Incomplete Code:
+	All code should be complete and finished, and all of the tests should pass. We also did extra credit 1 and 4.
+
+
+Lab Difficulties:
+	We had difficulties on extra credit 4 in determining when to decide which join function to use. It was hard to decipher the immense amount of pre-written code to figure out where everything gets passed around. However, once we spent a while reading through the code, we found a place that seemed fitting to put it. As mentioned earlier, we had some issues debugging the join ordering, though this was more due to not sufficiently testing exercise 3 before moving on to exercise 4. Overall we were quite successful with this lab.
+
+
